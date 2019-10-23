@@ -113,7 +113,7 @@ class Bank {
     private static double getRequestMoneyMultiplier(double requestedMoney) {
         return -Math.log(requestedMoney);
     }
-    public static String getAnswerValue(double val){
+    static String getAnswerValue(double val){
         String str = "Кредит не выдаётся";
         if (val>0){
             str = "Кредит выдаётся";
