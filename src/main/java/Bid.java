@@ -5,7 +5,7 @@ class Bid {
     double lastYearIncome;
     int creditRating;
     double requestedMoney;
-    int paymentTime;
+    double paymentTime;
     CreditTargets target;
     boolean retirement;
     boolean adulthood;
@@ -16,7 +16,7 @@ class Bid {
         double lastYearIncome,
         int creditRating,
         double requestedMoney,
-        int paymentTime,
+        double paymentTime,
         CreditTargets target)
     {
         this.age = age;
@@ -28,14 +28,18 @@ class Bid {
         this.paymentTime = paymentTime;
         this.target = target;
 
-        this.retirement = isRetirement();
+        //this.retirement = isRetirement();
         this.adulthood = isAdulthood();
     }
 
     private boolean isAdulthood(){
         return this.age>=18;
     }
-    private boolean isRetirement(){
-        return (this.gender==Genders.F && this.age>60 || this.gender==Genders.M && this.age>65);
+//    private boolean isRetirement(){
+//        return (this.gender==Genders.F && this.age>60 || this.gender==Genders.M && this.age>65);
+//    }
+    boolean isPaymentOverlaysOnRetirement(){
+        return (this.gender==Genders.F && this.age+this.paymentTime>60 || this.gender==Genders.M && this.age+this.paymentTime>65);
     }
+
 }

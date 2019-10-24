@@ -1,43 +1,56 @@
+import java.text.DecimalFormat;
+
 class Bank {
     static double getYearlyCreditPayment(Bid bid){
+        DecimalFormat df = new DecimalFormat("##.###");
         double sum=0;
-        double multiplier=0;
 
         if(arePrimaryRequirementsMet(bid)){
-            multiplier =    getTargetsMultiplier(bid.target)+
+            double multiplier =    getTargetsMultiplier(bid.target)+
                             getRatingMultiplier(bid.creditRating)+
                             getMoneySourcesMultiplier(bid.moneySources)+
                             getRequestMoneyMultiplier(bid.requestedMoney);
             sum = calculateYearlyCreditPayment(bid.requestedMoney,bid.paymentTime,multiplier);
             int limit = howMuchMoneyCanClientTake(bid.moneySources,bid.creditRating);
             if(sum>bid.lastYearIncome/2){
-                System.out.println("Годовой платёж в размере "+sum+" превышает половину годового дохода. Кредит нельзя оформить");
+                System.out.println("Годовой платёж в размере "+df.format(sum)+" превышает половину годового дохода. Кредит нельзя оформить");
                 sum = 0;
-            } else if(bid.requestedMoney>limit){
-                System.out.println("Запрашиваемая сумма "+bid.requestedMoney+" превышает допустимую: "+limit+". Кредит нельзя оформить");
+            } else if(bid.requestedMoney*1000000>limit){
+                System.out.println("Запрашиваемая сумма "+bid.requestedMoney+" млн. превышает допустимую: "+limit+". Кредит нельзя оформить");
                 sum = 0;
             }
         };
         return sum;
     }
-    private static boolean arePrimaryRequirementsMet(Bid bid){
+    private static boolean arePrimaryRequirementsMet(Bid bid) {
         boolean result = true;
-        if(!bid.adulthood || bid.retirement){
+
+        if (!bid.adulthood) {
             result = false;
-            System.out.println("Кредит нельзя оформить, будучи несовершеннолетним или достигшим пенсионного возраста");
-        } else if(bid.creditRating==-2 || bid.moneySources==MoneySources.JOBLESS){
+            System.out.println("Кредит нельзя оформить, будучи несовершеннолетним");
+        } else if (bid.paymentTime < 1 || bid.paymentTime > 20) {
+            result = false;
+            System.out.println("Кредит нельзя оформить, срок погашения должен быть от 1 до 20 лет");
+        } else if (bid.isPaymentOverlaysOnRetirement()) {
+            result = false;
+            System.out.println("Кредит нельзя оформить, если до погашения возраст превышает пенсионный");
+        } else if (bid.requestedMoney < 0.1) {
+            result = false;
+            System.out.println("Кредит нельзя оформить, запрашиваемая сумма меньше допустимой");
+        } else if (bid.creditRating <= -2 || bid.moneySources == MoneySources.JOBLESS) {
             result = false;
             System.out.println("Кредит нельзя оформить, имея низкий кредитный рейтинг или будучи безработным");
-        } else if(bid.requestedMoney/bid.paymentTime > bid.lastYearIncome/3) {
+        } else if (bid.requestedMoney / bid.paymentTime >= bid.lastYearIncome / 3) {
             result = false;
-            System.out.println("Запрашиваемые условия не соответствуют доходу клиента, кредит оформить нельзя");
+            System.out.println("Кредит нельзя оформить, запрашиваемые условия не соответствуют доходу клиента");
         }
-        return result;
+            return result;
     }
-    private static double calculateYearlyCreditPayment(double creditMoney,int paymentTime, double multiplier){
+
+    private static double calculateYearlyCreditPayment(double creditMoney, double paymentTime, double multiplier){
         return (creditMoney * (1 + paymentTime * (10 + multiplier)/100)) / paymentTime;
     }
-    private static int howMuchMoneyCanClientTake(MoneySources moneySources,int creditRating){
+    static int howMuchMoneyCanClientTake(MoneySources moneySources, int creditRating){
         int sourcesLimit=0;
         int ratingLimit=0;
         switch (moneySources){
@@ -65,7 +78,7 @@ class Bank {
         }
         return Math.min(sourcesLimit,ratingLimit);
     }
-    private static double getTargetsMultiplier(CreditTargets target){
+    static double getTargetsMultiplier(CreditTargets target){
         double multiplier=0;
         switch (target){
             case MORTGAGE:
@@ -80,9 +93,9 @@ class Bank {
         }
         return multiplier;
     }
-    private static double getRatingMultiplier(int raiting) {
+    static double getRatingMultiplier(int rating) {
         double multiplier = 0;
-        switch (raiting) {
+        switch (rating) {
             case -1:
                 multiplier = 1.5;
                 break;
@@ -95,7 +108,7 @@ class Bank {
         }
         return multiplier;
     }
-    private static double getMoneySourcesMultiplier(MoneySources moneySources) {
+    static double getMoneySourcesMultiplier(MoneySources moneySources) {
         double multiplier = 0;
         switch (moneySources) {
             case PASSIVE:
@@ -110,14 +123,7 @@ class Bank {
         }
         return multiplier;
     }
-    private static double getRequestMoneyMultiplier(double requestedMoney) {
-        return -Math.log(requestedMoney);
+    static double getRequestMoneyMultiplier(double requestedMoney) {
+        return -Math.log10(requestedMoney);
     }
-    static String getAnswerValue(double val){
-        String str = "Кредит не выдаётся";
-        if (val>0){
-            str = "Кредит выдаётся";
-        }
-        return str;
-    };
 }
